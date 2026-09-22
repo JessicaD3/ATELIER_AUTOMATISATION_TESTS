@@ -1,6 +1,5 @@
 import math
 from datetime import datetime, timezone, timedelta
-
 from .client import ApiClient, DEFAULT_TIMEOUT, MAX_RETRIES
 from .tests import TOUS_LES_TESTS, API_BASE_URL
 

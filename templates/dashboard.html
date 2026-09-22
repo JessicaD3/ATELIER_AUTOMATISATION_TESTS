@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Tests API {{ latest.api if latest else '' }}</title>
+<style>
+  :root{
+    --bg:#0b1020; --card:#121a33; --muted:#aab4d4; --text:#e9edff;
+    --accent:#77baff; --ok:#62d6a0; --bad:#ff6b7a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 10% 0%, #172257 0%, var(--bg) 60%);
+    color:var(--text); line-height:1.45;
+  }
+  header{ padding:32px 18px 10px; max-width:1000px; margin:0 auto; }
+  h1{margin:0 0 6px; font-size: clamp(20px, 3vw, 30px);}
+  .subtitle{color:var(--muted); max-width:75ch;}
+  .container{max-width:1000px; margin:0 auto; padding:18px;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    border-radius:16px; padding:16px; margin-bottom:16px;
+  }
+  .card h2{margin:0 0 10px; font-size:18px;}
+  .pill{
+    display:inline-flex; gap:6px; align-items:center; padding:5px 10px; border-radius:999px;
+    background: rgba(119,186,255,0.12); border:1px solid rgba(119,186,255,0.28);
+    color:#d9ecff; font-size:12px; text-decoration:none;
+  }
+  a.pill:hover{filter:brightness(1.1)}
+  .kpi{ display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:6px; }
+  @media (max-width: 900px){ .kpi{grid-template-columns: repeat(2, 1fr);} }
+  .kpi .box{ padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); }
+  .kpi .box b{display:block; font-size:20px; margin-bottom:4px;}
+  .kpi .box span{color:var(--muted); font-size:12px;}
+  .table{ width:100%; border-collapse: collapse; margin-top:10px; font-size: 13px; }
+  .table th, .table td{ padding:9px 10px; border-bottom:1px solid rgba(255,255,255,0.08); text-align:left; vertical-align:top; }
+  .table th{ background: rgba(119,186,255,0.10); font-weight:600; }
+  .status-pass{color:var(--ok); font-weight:600;}
+  .status-fail{color:var(--bad); font-weight:600;}
+  .muted{color:var(--muted); font-size:13px;}
+  .empty{padding:30px; text-align:center; color:var(--muted);}
+  .footer{ max-width:1000px; margin:0 auto; padding:20px 18px 40px; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Dashboard — Tests API {{ latest.api if latest else '(aucun run)' }}</h1>
+  <p class="subtitle">Historique des runs, métriques de QoS (latence, taux d'erreur) et détail du dernier run.</p>
+  <div class="row" style="margin-top:10px">
+    <a class="pill" href="/run">▶ Lancer un run</a>
+    <a class="pill" href="/health">❤ Health</a>
+    <a class="pill" href="/">📄 Consignes</a>
+  </div>
+</header>
+
+<div class="container">
+
+{% if not latest %}
+  <div class="card empty">
+    Aucun run enregistré pour le moment.<br><br>
+    <a class="pill" href="/run">▶ Lancer le premier run</a>
+  </div>
+{% else %}
+
+  <div class="card">
+    <h2>Dernier run — {{ latest.timestamp }}</h2>
+    <div class="kpi">
+      <div class="box"><b>{{ latest.summary.passed }}</b><span>Tests réussis</span></div>
+      <div class="box"><b>{{ latest.summary.failed }}</b><span>Tests échoués</span></div>
+      <div class="box"><b>{{ (latest.summary.error_rate * 100) | round(1) }}%</b><span>Taux d'erreur</span></div>
+      <div class="box"><b>{{ latest.summary.latency_ms_avg }} ms</b><span>Latence moyenne</span></div>
+      <div class="box"><b>{{ latest.summary.latency_ms_p95 }} ms</b><span>Latence p95</span></div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr><th>Test</th><th>Catégorie</th><th>Statut</th><th>Latence</th><th>Détails</th></tr>
+      </thead>
+      <tbody>
+        {% for t in latest.tests %}
+        <tr>
+          <td>{{ t.name }}</td>
+          <td class="muted">{{ t.category }}</td>
+          <td class="{{ 'status-pass' if t.status == 'PASS' else 'status-fail' }}">{{ t.status }}</td>
+          <td>{{ t.latency_ms }} ms</td>
+          <td class="muted">{{ t.details }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Historique des runs</h2>
+    <table class="table">
+      <thead>
+        <tr><th>Horodatage</th><th>Réussis</th><th>Échoués</th><th>Taux d'erreur</th><th>Latence avg</th><th>Latence p95</th></tr>
+      </thead>
+      <tbody>
+        {% for run in history %}
+        <tr>
+          <td>{{ run.timestamp }}</td>
+          <td class="status-pass">{{ run.summary.passed }}</td>
+          <td class="status-fail">{{ run.summary.failed }}</td>
+          <td>{{ (run.summary.error_rate * 100) | round(1) }}%</td>
+          <td>{{ run.summary.latency_ms_avg }} ms</td>
+          <td>{{ run.summary.latency_ms_p95 }} ms</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}
+
+</div>
+<div class="footer">Atelier "Testing as Code &amp; API Monitoring" — dashboard généré automatiquement.</div>
+</body>
+</html>
