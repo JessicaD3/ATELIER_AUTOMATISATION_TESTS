@@ -160,6 +160,26 @@
     }
     button:hover{filter:brightness(1.05)}
     .small{font-size:12px}
+
+        .btn-dashboard{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:16px;
+      padding:12px 22px;
+      border-radius:14px;
+      background: linear-gradient(135deg, #77baff, #62d6a0);
+      color:#0b1020;
+      font-weight:700;
+      font-size:15px;
+      text-decoration:none;
+      box-shadow: 0 8px 20px rgba(119,186,255,0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .btn-dashboard:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(119,186,255,0.5);
+    }
   </style>
 </head>
 
@@ -176,8 +196,8 @@
     Vous allez choisir une API dans la liste <a href="https://github.com/public-apis/public-apis" target="_blank" rel="noopener">public-apis</a>
     et construire une mini-solution de tests automatisés déployée sur PythonAnywhere : exécution planifiée, métriques QoS et tableau de résultats.
   </p>
-  <p class="row" style="margin-top:14px">
-    <a class="pill ok" href="/dashboard">📊 Voir le dashboard</a>
+  <a class="btn-dashboard" href="/dashboard">📊 Voir le dashboard</a>
+  <p class="row" style="margin-top:10px">
     <a class="pill" href="/run">▶ Lancer un run</a>
     <a class="pill" href="/health">❤ Health</a>
   </p>
